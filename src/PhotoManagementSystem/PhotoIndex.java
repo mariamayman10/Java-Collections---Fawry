@@ -33,7 +33,7 @@ public class PhotoIndex {
 
     private void updateTagIndex(Photo photo){
         for(String tag: photo.getTags()){
-            tagIndex.computeIfAbsent(tag, p->new ArrayList<>()).add(photo);
+            tagIndex.computeIfAbsent(tag.toLowerCase().trim(), p->new ArrayList<>()).add(photo);
         }
     }
     private void updateDateIndex(Photo photo){
