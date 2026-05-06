@@ -3,10 +3,7 @@ import PhotoManagementSystem.Photo;
 import PhotoManagementSystem.PhotoIndex;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.NavigableMap;
-import java.util.TreeMap;
+import java.util.*;
 
 public class SearchByDate implements SearchStrategy{
     private final LocalDate from;
@@ -38,14 +35,14 @@ public class SearchByDate implements SearchStrategy{
     }
 
     @Override
-    public List<Photo> search(PhotoIndex photoIndex, int photosLength) {
-        TreeMap<LocalDate, List<Photo>> dateIndex = photoIndex.getDateIndex();
+    public Set<String> search(PhotoIndex photoIndex, int maxSize) {
+        TreeMap<LocalDate, Set<String>> dateIndex = photoIndex.getDateIndex();
         if(mode == DateSearchMode.EXACT) {
-            List<Photo> result = dateIndex.get(from);
-            if (result == null) return List.of();
-            return List.copyOf(result);
+            Set<String> result = dateIndex.get(from);
+            if (result == null) return Set.of();
+            return Set.copyOf(result);
         }
-        NavigableMap<LocalDate, List<Photo>> result;
+        NavigableMap<LocalDate, Set<String>> result;
         if(mode == DateSearchMode.RANGE){
             result = dateIndex.subMap(from, true, to, true);
         }else if(mode == DateSearchMode.TO){
@@ -55,10 +52,10 @@ public class SearchByDate implements SearchStrategy{
         }else {
             throw new IllegalArgumentException("Invalid date search mode");
         }
-        List<Photo> photos = new ArrayList<>(photosLength);
-        for (List<Photo> list : result.values()) {
-            photos.addAll(list);
+        List<String> photos = new ArrayList<>(maxSize);
+        for (Set<String> set : result.values()) {
+            photos.addAll(set);
         }
-        return List.copyOf(photos);
+        return Set.copyOf(photos);
     }
 }

@@ -1,9 +1,6 @@
 package PhotoManagementSystem;
-
 import Location.LocationCoordinates;
 import Location.LocationString;
-import Location.LocationValue;
-
 import java.time.LocalDate;
 import java.util.Set;
 
@@ -67,5 +64,4 @@ public class Photo {
     public String toString() {
         return "Photo{id='" + id + "', imgUrl='" + imgUrl + "'}";
     }
-
 }

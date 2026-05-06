@@ -1,6 +1,5 @@
 package Search;
 
-import PhotoManagementSystem.Photo;
 import PhotoManagementSystem.PhotoIndex;
 
 import java.util.*;
@@ -22,35 +21,35 @@ public class SearchByTags implements SearchStrategy{
         this.mode = mode;
     }
     @Override
-    public List<Photo> search(PhotoIndex photoIndex, int photosLength) {
-        Map<String, List<Photo>> tagIndex = photoIndex.getTagIndex();
-        if(mode == SearchMode.AND) return andSearch(tagIndex, photosLength);
-        else if(mode == SearchMode.OR) return orSearch(tagIndex, photosLength);
+    public Set<String> search(PhotoIndex photoIndex, int maxSize) {
+        Map<String, Set<String>> tagIndex = photoIndex.getTagIndex();
+        if(mode == SearchMode.AND) return andSearch(tagIndex, tags.size());
+        else if(mode == SearchMode.OR) return orSearch(tagIndex, maxSize);
         else throw new IllegalArgumentException("Invalid search mode");
     }
 
-    private List<Photo> orSearch(Map<String, List<Photo>> tagIndex, int photosLength){
-        Set<Photo> result = new HashSet<>(photosLength);
+    private Set<String> orSearch(Map<String, Set<String>> tagIndex, int maxSize){
+        Set<String> result = new HashSet<>(maxSize);
         for (String tag: tags){
-            List<Photo> list = tagIndex.get(tag);
+            Set<String> list = tagIndex.get(tag);
             if(list != null)
                 result.addAll(list);
         }
-        return List.copyOf(result);
+        return Set.copyOf(result);
     }
-    private List<Photo> andSearch(Map<String, List<Photo>> tagIndex, int photosLength){
-        List<List<Photo>> lists = new ArrayList<>();
+    private Set<String> andSearch(Map<String, Set<String>> tagIndex, int maxSize){
+        List<Set<String>> listOfSets = new ArrayList<>(maxSize);
         for (String tag : tags) {
-            List<Photo> list = tagIndex.get(tag);
-            if (list == null) return List.of();
-            lists.add(list);
+            Set<String> set = tagIndex.get(tag);
+            if (set == null) return Set.of();
+            listOfSets.add(set);
         }
-        lists.sort(Comparator.comparingInt(List::size));
-        Set<Photo> result = new HashSet<>(lists.getFirst());
-        for (int i = 1; i < lists.size(); i++) {
-            result.retainAll(lists.get(i));
+        listOfSets.sort(Comparator.comparingInt(Set::size));
+        Set<String> result = new HashSet<>(listOfSets.getFirst());
+        for (int i = 1; i < listOfSets.size(); i++) {
+            result.retainAll(listOfSets.get(i));
             if (result.isEmpty()) break;
         }
-        return List.copyOf(result);
+        return Set.copyOf(result);
     }
 }

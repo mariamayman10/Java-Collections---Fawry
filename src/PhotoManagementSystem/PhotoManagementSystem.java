@@ -4,18 +4,19 @@ import Search.SearchStrategy;
 import java.util.*;
 
 public class PhotoManagementSystem {
-    private final List<Photo> photos = new ArrayList<>();
+    private final Map<String, Photo> photos = new HashMap<>();
     private final PhotoIndex photoIndex = new PhotoIndex();
 
 
-    public List<Photo> search(SearchStrategy searchStrategy){
+    public void search(SearchStrategy searchStrategy){
         if(searchStrategy == null) throw new IllegalArgumentException("Strategy must not be null.");
-        return searchStrategy.search(photoIndex, photos.size());
+        Set<String> searchResult = searchStrategy.search(photoIndex, photos.size());
+        printPhotos(searchResult);
     }
 
     public void uploadPhoto(Photo photo){
         if(photo == null) return;
-        photos.add(photo);
+        photos.put(photo.getId(), photo);
         photoIndex.registerPhoto(photo);
     }
     public void updateTag(Photo photo, String tag){
@@ -24,6 +25,12 @@ public class PhotoManagementSystem {
         if(!photo.containsTag(normalizedTag)){
             photo.addTag(normalizedTag);
             photoIndex.addTag(photo, normalizedTag);
+        }
+    }
+    public void printPhotos(Set<String> photoIds){
+        for(String id: photoIds){
+            Photo photo = photos.get(id);
+            System.out.println("Photo Id: " + id + " Photo name: " + photo.getImgUrl());
         }
     }
 

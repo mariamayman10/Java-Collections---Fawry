@@ -1,13 +1,15 @@
 package PhotoManagementSystem;
 
+import Location.LocationCoordinates;
+
 import java.time.LocalDate;
 import java.util.*;
 
 public class PhotoIndex {
-    private final Map<String, List<Photo>> tagIndex = new HashMap<>();
-    private final Map<String, List<Photo>> stringLocationIndex = new HashMap<>();
-    private final Map<String, List<Photo>> geoLocationIndex = new HashMap<>();
-    private final TreeMap<LocalDate, List<Photo>> dateIndex = new TreeMap<>();
+    private final Map<String, Set<String>> tagIndex = new HashMap<>();
+    private final Map<String, Set<String>> stringLocationIndex = new HashMap<>();
+    private final Map<LocationCoordinates, Set<String>> geoLocationIndex = new HashMap<>();
+    private final TreeMap<LocalDate, Set<String>> dateIndex = new TreeMap<>();
     private static final double CELL_SIZE = 0.1;
 
     public void registerPhoto(Photo photo){
@@ -16,40 +18,39 @@ public class PhotoIndex {
         updateLocationIndex(photo);
     }
     public void addTag(Photo photo, String normalizedTag){
-        tagIndex.computeIfAbsent(normalizedTag, p -> new ArrayList<>()).add(photo);
+        tagIndex.computeIfAbsent(normalizedTag, p -> new HashSet<>()).add(photo.getId());
     }
-    public Map<String, List<Photo>> getTagIndex() {
+    public Map<String, Set<String>> getTagIndex() {
         return tagIndex;
     }
-    public TreeMap<LocalDate, List<Photo>> getDateIndex() {
-        return dateIndex;
-    }
-    public Map<String, List<Photo>> getStringLocationIndex() {
+    public Map<String, Set<String>> getStringLocationIndex() {
         return stringLocationIndex;
     }
-    public Map<String, List<Photo>> getGeoLocationIndex() {
+    public Map<LocationCoordinates, Set<String>> getGeoLocationIndex() {
         return geoLocationIndex;
+    }
+    public TreeMap<LocalDate, Set<String>> getDateIndex() {
+        return dateIndex;
     }
 
     private void updateTagIndex(Photo photo){
         for(String tag: photo.getTags()){
-            tagIndex.computeIfAbsent(tag.toLowerCase().trim(), p->new ArrayList<>()).add(photo);
+            String normalizedTag = tag.toLowerCase().trim();
+            tagIndex.computeIfAbsent(normalizedTag, p->new HashSet<>()).add(photo.getId());
         }
     }
     private void updateDateIndex(Photo photo){
         if(photo.getDate() != null){
-            dateIndex.computeIfAbsent(photo.getDate(), p->new ArrayList<>()).add(photo);
+            dateIndex.computeIfAbsent(photo.getDate(), p->new HashSet<>()).add(photo.getId());
         }
     }
     private void updateLocationIndex(Photo photo){
         if(photo.getLocationName() != null){
-            stringLocationIndex.computeIfAbsent(photo.getLocationName().getLocation().toLowerCase().trim(), p->new ArrayList<>()).add(photo);
+            String normalizedStringLocation = photo.getLocationName().getLocation().toLowerCase().trim();
+            stringLocationIndex.computeIfAbsent(normalizedStringLocation, p->new HashSet<>()).add(photo.getId());
         }
         if(photo.getCoordinates() != null){
-            int latBucket = (int) (photo.getCoordinates().getLatitude() / CELL_SIZE);
-            int lngBucket = (int) (photo.getCoordinates().getLongitude() / CELL_SIZE);
-            String key = latBucket + "_" + lngBucket;
-            geoLocationIndex.computeIfAbsent(key, p->new ArrayList<>()).add(photo);
+            geoLocationIndex.computeIfAbsent(photo.getCoordinates(), p -> new HashSet<>()).add(photo.getId());
         }
     }
 }

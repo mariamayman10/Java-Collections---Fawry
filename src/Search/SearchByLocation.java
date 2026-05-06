@@ -1,12 +1,9 @@
 package Search;
 
 import Location.LocationCoordinates;
-import PhotoManagementSystem.Photo;
 import PhotoManagementSystem.PhotoIndex;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class SearchByLocation implements SearchStrategy{
     private final String locationString;
@@ -22,7 +19,7 @@ public class SearchByLocation implements SearchStrategy{
     }
     public SearchByLocation(LocationCoordinates locationCoordinates, double radius){
         if(locationCoordinates == null) throw new IllegalArgumentException("Location coordinates must be provided");
-        if(radius == 0.0) throw new IllegalArgumentException("Must have radius greater than 0");
+        if(radius <= 0) throw new IllegalArgumentException("Must have radius greater than 0");
         this.locationString = null;
         this.locationCoordinates = locationCoordinates;
         this.radius = radius;
@@ -30,41 +27,37 @@ public class SearchByLocation implements SearchStrategy{
 
 
     @Override
-    public List<Photo> search(PhotoIndex photoIndex, int photosLength) {
+    public Set<String> search(PhotoIndex photoIndex, int maxSize) {
         if(locationString != null){
-            Map<String, List<Photo>> stringLocationIndex = photoIndex.getStringLocationIndex();
-            return searchByString(stringLocationIndex, photosLength);
+            Map<String, Set<String>> stringLocationIndex = photoIndex.getStringLocationIndex();
+            return searchByString(stringLocationIndex, maxSize);
         }
         if(locationCoordinates != null){
-            Map<String, List<Photo>> geoLocationIndex = photoIndex.getGeoLocationIndex();
-            return searchByCoordinates(geoLocationIndex, photosLength);
+            Map<LocationCoordinates, Set<String>> geoLocationIndex = photoIndex.getGeoLocationIndex();
+            return searchByCoordinates(geoLocationIndex, maxSize);
         }
-        return List.of();
+        return Set.of();
     }
-    private List<Photo> searchByString(Map<String, List<Photo>> stringLocationIndex, int photosLength){
+    private Set<String> searchByString(Map<String, Set<String>> stringLocationIndex, int maxSize){
         String normalizedLocationString = locationString.toLowerCase().trim();
-        List<Photo> result = stringLocationIndex.get(normalizedLocationString);
+        Set<String> result = stringLocationIndex.get(normalizedLocationString);
         if(result != null) return result;
-        result = new ArrayList<>(photosLength);
-        for (Map.Entry<String, List<Photo>> entry : stringLocationIndex.entrySet()) {
+        result = new LinkedHashSet<>(maxSize);
+        for (Map.Entry<String, Set<String>> entry : stringLocationIndex.entrySet()) {
             if (entry.getKey().contains(normalizedLocationString)) {
                 result.addAll(entry.getValue());
             }
         }
-        return List.copyOf(result);
+        return Set.copyOf(result);
     }
-    private List<Photo> searchByCoordinates(Map<String, List<Photo>> geoLocationIndex, int photosLength){
-        List<Photo> result = new ArrayList<>(photosLength);
-        for (List<Photo> list : geoLocationIndex.values()) {
-            for (Photo p : list) {
-                LocationCoordinates loc = p.getCoordinates();
-                if (loc != null && distanceKm(loc, locationCoordinates) <= radius) {
-                    result.add(p);
-                }
+    private Set<String> searchByCoordinates(Map<LocationCoordinates, Set<String>> geoLocationIndex, int maxSize){
+        Set<String> result = new HashSet<>(maxSize);
+        for (Map.Entry<LocationCoordinates, Set<String>> entry: geoLocationIndex.entrySet()) {
+            if(distanceKm(locationCoordinates, entry.getKey()) <= radius){
+                result.addAll(entry.getValue());
             }
         }
-
-        return List.copyOf(result);
+        return Set.copyOf(result);
     }
     private double distanceKm(LocationCoordinates a, LocationCoordinates b) {
         double R = 6371;

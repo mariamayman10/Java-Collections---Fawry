@@ -1,6 +1,5 @@
 package Search;
 
-import PhotoManagementSystem.Photo;
 import PhotoManagementSystem.PhotoIndex;
 
 import java.util.LinkedHashSet;
@@ -15,27 +14,27 @@ public class CompositeSearch implements SearchStrategy{
         this.searchMode = searchMode;
     }
     @Override
-    public List<Photo> search(PhotoIndex photoIndex, int photosLength) {
+    public Set<String> search(PhotoIndex photoIndex, int maxSize) {
         if(searchMode == SearchMode.OR){
-            return orSearch(photoIndex, photosLength);
+            return orSearch(photoIndex, maxSize);
         }
         else if(searchMode == SearchMode.AND){
-            return andSearch(photoIndex, photosLength);
+            return andSearch(photoIndex, maxSize);
         }
-        return null;
+        throw new IllegalArgumentException("Invalid search mode");
     }
 
-    private List<Photo> orSearch(PhotoIndex photoIndex, int photosLength){
-        Set<Photo> result = new LinkedHashSet<>();
-        for (SearchStrategy s : strategies) result.addAll(s.search(photoIndex, photosLength));
-        return List.copyOf(result);
+    private Set<String> orSearch(PhotoIndex photoIndex, int maxSize){
+        Set<String> result = new LinkedHashSet<>();
+        for (SearchStrategy s : strategies) result.addAll(s.search(photoIndex, maxSize));
+        return Set.copyOf(result);
     }
-    private List<Photo> andSearch(PhotoIndex photoIndex, int photosLength){
-        Set<Photo> result = new LinkedHashSet<>(strategies.getFirst().search(photoIndex, photosLength));
+    private Set<String> andSearch(PhotoIndex photoIndex, int maxSize){
+        Set<String> result = new LinkedHashSet<>(strategies.getFirst().search(photoIndex, maxSize));
         for (int i = 1; i < strategies.size(); i++) {
-            Set<Photo> list = new LinkedHashSet<>(strategies.get(i).search(photoIndex, photosLength));
+            Set<String> list = new LinkedHashSet<>(strategies.get(i).search(photoIndex, maxSize));
             result.retainAll(list);
         }
-        return List.copyOf(result);
+        return Set.copyOf(result);
     }
 }

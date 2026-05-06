@@ -1,9 +1,8 @@
 package Search;
-import PhotoManagementSystem.Photo;
 import PhotoManagementSystem.PhotoIndex;
 
-import java.util.List;
+import java.util.Set;
 
 public interface SearchStrategy {
-    public List<Photo> search(PhotoIndex photoIndex, int photosLength);
+    Set<String> search(PhotoIndex photoIndex, int maxSize);
 }
